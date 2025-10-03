@@ -1,0 +1,37 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/omnistack?currentSchema=public
+    username: dev
+    password: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Kolkata
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.base-url}/realms/${keycloak.realm}
+  jackson:
+    time-zone: Asia/Kolkata
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+# Keycloak / identity config (update placeholders)
+keycloak:
+  base-url: http://keycloak:8080
+  realm: omnistack
+  client-id: auth-service-admin   # a confidential client used by this service for admin calls
+  client-secret: change_me_here
+
+

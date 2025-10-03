@@ -10,10 +10,11 @@ services:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
       POSTGRES_DB: omnistack
+      TZ: Asia/Kolkata
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ../../data/pgdata:/var/lib/postgresql/data
 
   mongo:
     image: mongo:6
@@ -21,7 +22,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongodata:/data/db
+      - ../../data/mongodata:/data/db
 
   redis:
     image: redis:7
@@ -79,7 +80,8 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
-
+    volumes:
+      - ../../data/keycloakdata:/opt/keycloak/data
   # ---------------------
   # Monitoring
   # ---------------------
@@ -117,10 +119,10 @@ services:
       - "8088:8088"   # HEC
       - "9997:9997"   # Indexer
     volumes:
-      - splunk-data:/opt/splunk/var
+      - ../../data/splunk-data:/opt/splunk/var
 
   fluentd:
-    image: fluent/fluentd:latest
+    build: ./logging
     container_name: fluentd
     depends_on:
       - splunk
@@ -129,8 +131,22 @@ services:
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+      
+  auth-service:
+    # build:
+    #   context: ./services/auth
+    image: ishanthakur1998/omnistack-auth-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/omnistack
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: dev
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: omnistack
+      KEYCLOAK_CLIENT_ID: auth-service-admin
+      KEYCLOAK_CLIENT_SECRET: PwHYPwuf3nVlWOVUTtmN0RL4Gsx18LWz
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - keycloak
 
-volumes:
-  pgdata:
-  mongodata:
-  splunk-data:
